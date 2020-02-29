@@ -110,7 +110,7 @@ if (process.argv[2] != "--server") {
       let url = page.searchParams.get("target");
       let width = (parseInt(page.searchParams.get("width")) || 80);
       res.writeHead(200);
-      res.write(drawTermPicture(await getImageData(url,width),width));
+      res.write(drawTermPicture(await getImageData(url,width),width,false));
       res.end();
     }
   })).listen(PORT);
