@@ -1,6 +1,9 @@
+const PORT = process.env.PORT || 5000
+const http = require("http");
 const canvas = require("canvas");
+const fs = require("fs");
 
-const hexToDecimal = (hex) => {
+const hexToRGB = (hex) => {
   return [0,0,0].map((e,i) => parseInt(hex.slice(i*2,i*2+2),16));
 }
 
@@ -36,10 +39,10 @@ const colors = ["000000","800000","008000","808000","000080","800080","008080",
   "ffffff","080808","121212","1c1c1c","262626","303030","3a3a3a","444444",
   "4e4e4e","585858","626262","6c6c6c","767676","808080","8a8a8a","949494",
   "9e9e9e","a8a8a8","b2b2b2","bcbcbc","c6c6c6","d0d0d0","dadada","e4e4e4",
-  "eeeeee"].map(hexToDecimal).map((e,i) => ({rgb:e,code:i}));
+  "eeeeee"].map(hexToRGB).map((e,i) => ({rgb:e,code:i}));
 
 let getColorCode = (color) => {
-  color = (typeof color !== "string") ? color:hexToDecimal(color);
+  color = (typeof color !== "string") ? color:hexToRGB(color);
   let closest = 255;
   return colors.map((e,code) => {
     e.delta = 0;
@@ -48,6 +51,15 @@ let getColorCode = (color) => {
     return e;
   }).find(e => e.delta == closest).code;
 }
+
+let getFile = (path,bin=false) => {
+  return new Promise((resolve,reject) => {
+    fs.readFile(path,(bin)?null:"utf8",(error,data) => {
+      if (error) { reject(error); }
+      resolve(data);
+    });
+  });
+};
 
 let getImageData = (url,width) => {
   let img = new canvas.Image();
@@ -64,7 +76,7 @@ let getImageData = (url,width) => {
   });
 };
 
-let drawTermPicture = (imgData,w) => {
+let drawTermPicture = (imgData,w,log=true) => {
   let string = "";
   let drawPixel = (color) => {
     let setColor = (color_code,background=false) => {
@@ -78,10 +90,28 @@ let drawTermPicture = (imgData,w) => {
     }
     string += drawPixel([imgData[i],imgData[i+1],imgData[i+2]]);
   }
-  console.log(string);
+  if (log) { console.log(string);}
+  return string;
 }
 
-(async (url,width) => {
-  width = ((width % 2) != 0) ? width-1:width;
-  drawTermPicture(await getImageData(url,width),width);
-})(process.argv[2],process.stdout.columns);
+if (process.argv[2] != "--server") {
+  (async (url,width) => {
+    width = ((width % 2) != 0) ? width-1:width;
+    drawTermPicture(await getImageData(url,width),width);
+  })(process.argv[2],process.stdout.columns);
+} else {
+  (http.createServer(async function(req, res) {
+    let page = new URL("http://dummy.com"+req.url);
+    if (page.searchParams.get("target") === null) {
+      res.writeHead(200);
+      res.write(await getFile("README.md"));
+      res.end();
+    } else {
+      let url = page.searchParams.get("target");
+      let width = (parseInt(page.searchParams.get("width")) || 80);
+      res.writeHead(200);
+      res.write(drawTermPicture(await getImageData(url,width),width));
+      res.end();
+    }
+  })).listen(PORT);
+}
