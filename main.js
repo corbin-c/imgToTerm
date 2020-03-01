@@ -90,6 +90,7 @@ let drawTermPicture = (imgData,w,log=true) => {
     }
     string += drawPixel([imgData[i],imgData[i+1],imgData[i+2]]);
   }
+  string += "\n";
   if (log) { console.log(string);}
   return string;
 }
