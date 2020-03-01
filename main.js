@@ -109,6 +109,7 @@ if (process.argv[2] != "--server") {
     } else {
       let url = page.searchParams.get("target");
       let width = (parseInt(page.searchParams.get("width")) || 80);
+      width = ((width % 2) != 0) ? width-1:width;
       res.writeHead(200);
       res.write(drawTermPicture(await getImageData(url,width),width,false));
       res.end();
