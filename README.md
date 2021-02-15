@@ -40,9 +40,3 @@ cols width:
 ```
 curl "http://localhost:5000/?target=https://upload.wikimedia.org/wikipedia/commons/f/f2/Ara-Zoo-Muenster-2013-02.jpg&width=120"
 ```
-
-or using the demo server at <https://termimg.herokuapp.com/>:
-
-```
-curl "https://termimg.herokuapp.com/?target=https://upload.wikimedia.org/wikipedia/commons/f/f2/Ara-Zoo-Muenster-2013-02.jpg&width=120"
-```
